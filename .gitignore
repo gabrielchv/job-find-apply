@@ -1,0 +1,32 @@
+# Secrets & credentials
+.env
+.env.*
+!.env.example
+
+# Persistent browser profile — contains live Google/LinkedIn/Gupy sessions
+.browser-profile/
+/profile/
+/user-data/
+
+# Mail credentials — app passwords, OAuth client secret, refresh tokens
+config/mail.env
+config/gmail-oauth-client*.json
+state/mail/
+
+# Local state
+*.sqlite
+*.sqlite3
+*.db
+state/
+
+# Logs / diagnostics (may contain PII)
+*.log
+logs/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Sensitive KB files are git-ignored in /Documents/jobsearch and must not be copied here
+kb/secrets.yaml

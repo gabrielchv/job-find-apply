@@ -1,0 +1,135 @@
+# job_find_apply settings. The KB itself stays the single source of truth in
+# /Documents/jobsearch/kb — this file only holds the bot's operational knobs.
+
+kb_dir: /home/gazerah/Documents/jobsearch/kb
+resume_dir: /home/gazerah/Documents/jobsearch/out
+resume_en: resume-en.pdf
+resume_pt: resume-pt.pdf
+
+llm:
+  # Gemini via its OpenAI-compatible endpoint. The model id can be overridden
+  # with GEMINI_MODEL in .env; DeepSeek remains available via DEEPSEEK_* env.
+  base_url: https://generativelanguage.googleapis.com/v1beta/openai
+  model: gemini-3.8-flash
+  pricing_usd_per_1m:          # cost accounting only; nothing decides on these
+    input: 0.30
+    output: 2.50
+
+match:
+  threshold: 70                # 0-100; a job must score >= this to be shortlisted
+  max_jobs_per_run: 100        # cap on how many fresh jobs reach scoring per cycle
+
+schedule:
+  interval_hours: 2            # discovery cadence (daemon sleeps ~2h between cycles)
+  min_delay_ms: 2500           # human-like pacing between actions
+  max_delay_ms: 9000
+
+budget:
+  cap_usd_per_day: 1.0         # hard stop; the runner refuses to spend past this
+
+discovery:
+  # Target: software engineering, web-dev-forward. The five support/help-desk terms
+  # that were here (Suporte Técnico, Analista de Suporte, Help Desk, Técnico de TI,
+  # Suporte de TI) accounted for 44 of the 61 submitted applications (72%) and
+  # crowded engineering roles out of the shortlist. Removed 2026-10-29.
+  search_terms:
+    - Desenvolvedor Full Stack
+    - Desenvolvedor Frontend
+    - Desenvolvedor Backend
+    - Desenvolvedor Web
+    - Desenvolvedor React
+    - Desenvolvedor Node.js
+    - Desenvolvedor Java
+    - Engenheiro de Software
+    - Engenheiro de IA
+    - Analista Desenvolvedor
+    - Estágio em Desenvolvimento
+    - Software Engineer
+    - Frontend Engineer
+    - Backend Engineer
+    - Full Stack Engineer
+    - AI Engineer
+  greenhouse_boards:
+    - ifoodcarreiras
+    - stone
+    - quintoandar
+    - brex
+  lever_boards:
+    - neon
+    - cloudwalk
+  ashby_boards:
+    - loft
+    - neon
+  gupy:
+    base: https://portal.gupy.io
+    page_size: 12              # fixed by Gupy; the SSR returns this many per page
+  max_pages_per_term: 8
+  scrape_targets:              # boards with no public JSON API — parsed by the LLM
+    - name: programathor
+      url: https://programathor.com.br/jobs
+    - name: programathor-p2
+      url: https://programathor.com.br/jobs?page=2
+    - name: programathor-p3
+      url: https://programathor.com.br/jobs?page=3
+    - name: vagas
+      url: https://www.vagas.com.br/vagas-de-programador
+
+apply:
+  dry_run: false               # when true, nothing is ever submitted
+  submit: true                 # when false, the submit-gate always defers
+  attach_resume: true
+  resume_lang: auto            # auto | en | pt
+  # Support / help-desk / service-desk roles are excluded by default because the KB
+  # says that work is not wanted, and they once made up 72% of all submissions.
+  # Set to true to include them; requested explicitly on 2026-11-21.
+  include_off_target: true
+
+notify:
+  command: notify-send
+
+# Mail: read the applicant's inboxes so an application that ends on an e-mailed
+# one-time code can be finished instead of handed back to a human.
+#
+# Two accounts, because the boards do not agree on which address receives the code:
+# every application sent so far used the "tech" address, while the personal one is a
+# gmail account too (and where recruiter replies actually land).
+#
+# backend: imap   reads with a Google app password (needs 2FA; no Google Cloud setup)
+# backend: oauth  reads through the Gmail API with a desktop OAuth client
+#                 (config/gmail-oauth-client.json, `npm run mail -- auth <account>`)
+mail:
+  enabled: true
+  accounts:
+    - name: tech
+      address: gabriel.chaves.tech@gmail.com
+      backend: imap
+      secret_env: MAIL_TECH_APP_PASSWORD
+    - name: personal
+      address: gabriel.chaves.3720@gmail.com
+      backend: imap
+      secret_env: MAIL_PERSONAL_APP_PASSWORD
+  # Resolving a submit-time code. The boards mail it within seconds, so the wait is
+  # bounded and the lookback stays short: an old code is worse than no code.
+  code:
+    wait_seconds: 120            # how long to keep polling for a code before deferring
+    poll_seconds: 8
+    lookback_minutes: 15         # ignore messages older than this when hunting a code
+  # Inbox triage: what counts as job mail, and how far back `npm run mail` looks.
+  triage:
+    lookback_days: 14
+    senders:                     # matched against From:, substring or domain
+      - gupy.io
+      - greenhouse.io
+      - greenhouse-mail.io
+      - lever.co
+      - ashbyhq.com
+      - linkedin.com
+      - ifood
+      - stone
+      - workday
+      - recrut
+  oauth:
+    client_file: config/gmail-oauth-client.json
+    token_dir: state/mail
+    scopes:
+      - https://www.googleapis.com/auth/gmail.readonly

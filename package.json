@@ -1,0 +1,36 @@
+{
+  "name": "job_find_apply",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Autonomous job search + apply agent (Gupy, greenhouse) with a safety-gated submit.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "discover": "tsx src/cli/index.ts discover",
+    "match": "tsx src/cli/index.ts match",
+    "apply": "tsx src/cli/index.ts apply",
+    "run": "tsx src/cli/index.ts run",
+    "daemon": "tsx src/cli/index.ts daemon",
+    "status": "tsx src/cli/index.ts status",
+    "login": "tsx src/cli/index.ts login",
+    "finish": "tsx src/cli/finish.ts",
+    "resume": "tsx src/cli/resume.ts",
+    "resume:all": "tsx src/cli/resume.ts --source all",
+    "resume:hold": "tsx src/cli/resume.ts --source all --hold",
+    "inventory": "tsx src/cli/finish.ts --inventory",
+    "tests": "tsx --test tests/*.test.ts",
+    "mail": "tsx src/cli/mail.ts",
+    "next": "tsx src/cli/next.ts"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "playwright": "^1.49.0",
+    "yaml": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
